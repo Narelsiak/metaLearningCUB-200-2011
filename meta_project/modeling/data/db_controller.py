@@ -82,4 +82,4 @@ class DatabaseController:
         
     def execute_raw_query(self, query, params=None):
         return self.execute_query(query, params, fetch=True)
-
+    
