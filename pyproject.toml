@@ -13,7 +13,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 ipython = "*"
 jupyterlab = "*"
 loguru = "*"
@@ -29,11 +29,21 @@ scikit-learn = "*"
 tqdm = "*"
 typer = "*"
 ray = "*"
-torch = "*"
 psycopg2 = "*"
+pyarrow = "*"
+ipywidgets = "*"
 
-[tool.poetry.dev-dependencies]
+torch = { version = "*", source = "pytorch-cu121" }
+torchvision = { version = "*", source = "pytorch-cu121" }
+torchaudio = { version = "*", source = "pytorch-cu121" }
+
+[tool.poetry.group.dev.dependencies]
 flake8 = "*"
+
+[[tool.poetry.source]]
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+priority = "explicit"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
