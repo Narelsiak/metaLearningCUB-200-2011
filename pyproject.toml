@@ -32,6 +32,7 @@ ray = "*"
 psycopg2 = "*"
 pyarrow = "*"
 ipywidgets = "*"
+higher = "*"
 
 torch = { version = "*", source = "pytorch-cu121" }
 torchvision = { version = "*", source = "pytorch-cu121" }
