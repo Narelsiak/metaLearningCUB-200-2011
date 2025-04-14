@@ -1,0 +1,5 @@
+lr: 0.001
+lr_inner: 0.1
+lr_output: 0.1
+num_inner_steps: 1
+proto_dim: 64

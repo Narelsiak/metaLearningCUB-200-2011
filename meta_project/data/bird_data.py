@@ -5,6 +5,8 @@ from PIL import Image
 from torch.utils import data
 from torchvision import transforms
 import pandas as pd
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 
 class BirdDataset(data.Dataset):
     """
@@ -12,7 +14,7 @@ class BirdDataset(data.Dataset):
     Handles data loading, preprocessing, splitting and transformations.
     """
     
-    def __init__(self, dataframe, image_folder, image_size=(224, 224), mode='train'):
+    def __init__(self, dataframe, image_folder, image_size=(224, 224), mode='train', num_workers=0):
         """
         Args:
             dataframe (pd.DataFrame): DataFrame containing 'image_name' and 'class_id' columns
@@ -25,6 +27,7 @@ class BirdDataset(data.Dataset):
         self.image_folder = image_folder
         self.image_size = image_size
         self.mode = mode
+        self.num_workers=num_workers
         
         # Precomputed normalization statistics for the dataset
         self.data_means = torch.Tensor([0.5183975, 0.49192241, 0.44651328])
@@ -61,19 +64,27 @@ class BirdDataset(data.Dataset):
         self.dataframe.loc[self.dataframe['class_id'].isin(val_classes), 'split'] = 'val'
         self.dataframe.loc[self.dataframe['class_id'].isin(test_classes), 'split'] = 'test'
 
+    @staticmethod
+    def _load_single_image(row, image_folder, image_size):
+        img_path = os.path.join(image_folder, row['image_name'])
+        img = Image.open(img_path).convert('RGB').resize(image_size)
+        img_array = np.array(img)
+        return img_array, row['class_id']
+
     def _load_images(self, dataframe):
-        """Internal method to load and process images from the given DataFrame."""
         images = []
         labels = []
-        
-        for _, row in dataframe.iterrows():
-            img_path = os.path.join(self.image_folder, row['image_name'])
-            img = Image.open(img_path).convert('RGB').resize(self.image_size)
-            img_array = np.array(img)
 
-            images.append(img_array)
-            labels.append(row['class_id'])
+        func = partial(self._load_single_image, image_folder=self.image_folder, image_size=self.image_size)
+        rows = [row for _, row in dataframe.iterrows()]
         
+        with ThreadPoolExecutor(max_workers=self.num_workers) as executor:
+            results = list(executor.map(func, rows))
+
+        for img_array, label in results:
+            images.append(img_array)
+            labels.append(label)
+
         return np.array(images), torch.tensor(labels)
 
     def _get_transforms(self):
@@ -105,7 +116,7 @@ class BirdDataset(data.Dataset):
         return len(self.images)
 
     @classmethod
-    def create_datasets(cls, dataframe, image_folder, image_size=(224, 224)):
+    def create_datasets(cls, dataframe, image_folder, image_size=(224, 224), num_workers=0):
         """
         Class method to create all three datasets (train, val, test) at once.
         
@@ -114,11 +125,11 @@ class BirdDataset(data.Dataset):
         """
         # First ensure data is split
         if 'split' not in dataframe.columns:
-            temp_ds = cls(dataframe, image_folder, image_size, mode='train')
+            temp_ds = cls(dataframe, image_folder, image_size, mode='train', num_workers=num_workers)
             dataframe = temp_ds.dataframe
         
-        train_ds = cls(dataframe, image_folder, image_size, mode='train')
-        val_ds = cls(dataframe, image_folder, image_size, mode='val')
-        test_ds = cls(dataframe, image_folder, image_size, mode='test')
+        train_ds = cls(dataframe, image_folder, image_size, mode='train', num_workers=num_workers)
+        val_ds = cls(dataframe, image_folder, image_size, mode='val', num_workers=num_workers)
+        test_ds = cls(dataframe, image_folder, image_size, mode='test', num_workers=num_workers)
         
         return train_ds, val_ds, test_ds
