@@ -7,7 +7,7 @@ import pytorch_lightning as pl
 import torchvision
 
 from meta_project.utils.split_batch import split_batch
-class MAML(pl.LightningModule):
+class ProtoMAML(pl.LightningModule):
 
     def __init__(self, proto_dim, lr, lr_inner, lr_output, num_inner_steps):
         super().__init__()

@@ -10,7 +10,7 @@ import torch.utils.data as data
 from datetime import datetime
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
-from modeling.MAML import MAML
+from meta_project.modeling.ProtoMAML import ProtoMAML
 
 IMAGE_FOLDER = os.getcwd() + "/data/raw/CUB_200_2011/images/"
 N_WAY = 5
@@ -91,7 +91,7 @@ if __name__ == "__main__":
     val_maml_loader = data.DataLoader(val_dataset, batch_sampler=val_maml_sampler, collate_fn=val_maml_sampler.get_collate_fn())
 
 
-    protomaml_model = train_model(MAML,
+    protomaml_model = train_model(ProtoMAML,
                               proto_dim=64,
                               lr=1e-3,
                               lr_inner=0.1,
