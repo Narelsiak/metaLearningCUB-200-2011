@@ -74,7 +74,7 @@ def train_model(model_class, train_loader, val_loader, **kwargs):
     trainer.save_checkpoint(model_path)
     
     return model
-import time
+
 if __name__ == "__main__":
     data_loader = DataLoader()
     df = data_loader.load_and_merge_data()
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     train_maml_loader = data.DataLoader(train_dataset, batch_sampler=train_maml_sampler, collate_fn=train_maml_sampler.get_collate_fn()) #""", num_workers=2, persistent_workers=True, pin_memory=True""" 
 
     val_maml_sampler = TaskBatchSampler(val_dataset.labels, include_query=True, N_way=N_WAY, K_shot=K_SHOT, batch_size=1)
-    val_maml_loader = data.DataLoader(val_dataset, batch_sampler=val_maml_sampler, collate_fn=val_maml_sampler.get_collate_fn()) #""", num_workers=2, persistent_workers=True, pin_memory=True"""
+    val_maml_loader = data.DataLoader(val_dataset, batch_sampler=val_maml_sampler, collate_fn=val_maml_sampler.get_collate_fn())
 
 
     protomaml_model = train_model(MAML,
